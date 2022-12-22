@@ -38,7 +38,7 @@ class GPT3 {
       headers: {
         'Authorization': 'Bearer $apiKey',
         'Accept': 'application/json',
-        'content-type': 'application/json;',
+        'Content-type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(body),
     );
