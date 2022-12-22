@@ -40,6 +40,7 @@ class GPT3 {
         'Accept': 'application/json',
         'content-type': 'application/json',
       },
+      encoding: Encoding.getByName('ISO-8859-1'),
       body: jsonEncode(body),
     );
   }
