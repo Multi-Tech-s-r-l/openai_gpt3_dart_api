@@ -284,7 +284,9 @@ class Engine {
   static const babbage = Engine._('text-babbage-001');
   static const curie = Engine._('text-curie-001');
   static const davinci = Engine._('text-davinci-002');
-
+  static const davinci2 = Engine._('text-davinci-002');
+  static const davinci3 = Engine._('text-davinci-003');
+  static const davinci_instruct = Engine._('davinci-instruct-beta');
   final String _string;
 
   const Engine._(this._string);
