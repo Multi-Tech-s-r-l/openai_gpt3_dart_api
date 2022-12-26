@@ -28,7 +28,7 @@ class GPT3 {
       return Uri.https('api.openai.com', '/v1/$apiEndpoint');
     }
     return Uri.https(
-        'api.openai.com', '/v1/engines/${engine.toString()}/$apiEndpoint');
+        'api.openai.com', '/v1/$apiEndpoint');
   }
 
   /// Post a HTTP call to the given [url] with the data object [body].
