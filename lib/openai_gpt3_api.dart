@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:openai_gpt3_api/files.dart';
 import 'package:openai_gpt3_api/search.dart';
+import 'package:universal_io/io.dart';
 
 import 'answer.dart';
 import 'classification.dart';
@@ -30,9 +31,47 @@ class GPT3 {
     return Uri.https(
         'api.openai.com', '/v1/$apiEndpoint');
   }
+  Future<HttpClientResponse> _postHttpCall(Uri url, dynamic parameter,
+      {int connectionTimeout = -1, int closeConnectionTimeout = -1}) async {
+    /// Controllo certificato annullato su Android
+    final client = HttpClient();//..badCertificateCallback = _certificateCheck;
+    //client.badCertificateCallback = _certificateCheck;
+    client.connectionTimeout = Duration(
+        milliseconds: connectionTimeout == -1
+            ? 30000
+            : connectionTimeout);
 
+    var request = await client.postUrl(url);
+
+    request.headers.add("Content-Type", "application/json; charset=UTF-8");
+    request.headers.add(HttpHeaders.authorizationHeader,
+        'Bearer $apiKey');
+
+    /*if (request is BrowserHttpClientRequest) {
+        request.browserCredentialsMode = true;
+      }*/
+    //print(request.toString());
+    if (parameter != null) {
+
+        print(jsonEncode(parameter));
+
+      request.write(jsonEncode(parameter));
+    }
+
+    try {
+      return await request.close().timeout(Duration(
+          milliseconds: closeConnectionTimeout == -1
+              ? 30000
+              : closeConnectionTimeout));
+    } catch (e) {
+
+        print(e);
+
+      rethrow;
+    }
+  }
   /// Post a HTTP call to the given [url] with the data object [body].
-  Future<Response> _postHttpCall(Uri url, Map<String, dynamic> body) {
+  Future<Response> _postHttpCallOld(Uri url, Map<String, dynamic> body) {
     return http.post(
       url,
       headers: {
@@ -88,11 +127,18 @@ class GPT3 {
 
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('completions', engine), reqData);
-    Map<String, dynamic> map = json.decode(response.body);
+    var result = await readResponse(response);
+    Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return CompletionApiResult.fromJson(map);
   }
-
+  Future<String> readResponse(HttpClientResponse response) async {
+    final contents = StringBuffer();
+    await for (var data in response.transform(utf8.decoder)) {
+      contents.write(data);
+    }
+    return contents.toString();
+  }
   /// Given a query and a set of documents or labels, the model ranks each
   /// document based on its semantic similarity to the provided [query].
   ///
@@ -112,7 +158,8 @@ class GPT3 {
         returnMetadata: returnMetadata);
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('search', engine), reqData);
-    Map<String, dynamic> map = json.decode(response.body);
+    var result = await readResponse(response);
+    Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return SearchApiResult.fromJson(map);
   }
@@ -158,7 +205,8 @@ class GPT3 {
         searchModel: searchModel.toString());
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('classifications'), reqData);
-    Map<String, dynamic> map = json.decode(response.body);
+    var result = await readResponse(response);
+    Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return ClassificationApiResult.fromJson(map);
   }
@@ -205,7 +253,8 @@ class GPT3 {
         expand: expand);
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('answers'), reqData);
-    Map<String, dynamic> map = json.decode(response.body);
+    var result = await readResponse(response);
+    Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return AnswerApiResult.fromJson(map);
   }
