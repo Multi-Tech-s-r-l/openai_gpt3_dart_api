@@ -16,6 +16,7 @@ class CompletionApiParameters {
       this.presencePenalty = 0,
       this.frequencyPenalty = 0,
       this.bestOf = 1,
+        this.model ='text-davinci-003',
       this.logitBias});
 
   final String prompt;
@@ -31,6 +32,7 @@ class CompletionApiParameters {
   final num frequencyPenalty;
   final int bestOf;
   final Map<String, num>? logitBias;
+  final String model;
 
   Map<String, dynamic> toJson() => _$CompletionApiParametersToJson(this);
 }
