@@ -58,7 +58,7 @@ Map<String, dynamic> _$CompletionApiResultToJson(
 Choice _$ChoiceFromJson(Map<String, dynamic> json) => Choice(
       json['text'] as String,
       json['index'] as int,
-      json['finish_reason'] as String,
+      json['finish_reason'] as String?,
       logprobs: json['logprobs'] == null
           ? null
           : Logprobs.fromJson(json['logprobs'] as Map<String, dynamic>),
