@@ -131,9 +131,11 @@ class GPT3 {
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('completions', engine), reqData);
     var result = await readResponse(response, onRx: onRx);
-    Map<String, dynamic> map = json.decode(result);
-    _catchExceptions(map);
-    return CompletionApiResult.fromJson(map);
+
+      Map<String, dynamic> map = json.decode(result);
+      _catchExceptions(map);
+      return CompletionApiResult.fromJson(map);
+
   }
   Future<String> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
     final completer = Completer<String>();
@@ -145,18 +147,18 @@ class GPT3 {
       contents.write(res.choices.first.text);
       onRx?.call(contents.toString());
     }, onDone: () => completer.complete(contents.toString()));
-    return completer.future;
+    //return completer.future;
     /*response.transform(utf8.decoder).listen((data) {
       onRx?.call(data);
       contents.write(data);
     }
     );*/
-/*
+
     await for (var data in response.transform(utf8.decoder)) {
       contents.write(data);
     }
-*/
-    //return contents.toString();
+
+    return contents.toString();
   }
   /// Given a query and a set of documents or labels, the model ranks each
   /// document based on its semantic similarity to the provided [query].
