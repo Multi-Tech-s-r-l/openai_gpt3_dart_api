@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
 
@@ -135,22 +136,23 @@ class GPT3 {
     return CompletionApiResult.fromJson(map);
   }
   Future<String> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
+    final completer = Completer<String>();
     final contents = StringBuffer();
-
-
-    response.listen((value) {
-      var rx = utf8.decode(value,allowMalformed: true);
-      onRx?.call(rx);
-      contents.write(rx);
-    }).onDone(() async {
-
-    });
+    response.transform(utf8.decoder).listen((data) {
+      contents.write(data);
+    }, onDone: () => completer.complete(contents.toString()));
+    return completer.future;
+    /*response.transform(utf8.decoder).listen((data) {
+      onRx?.call(data);
+      contents.write(data);
+    }
+    );*/
 /*
     await for (var data in response.transform(utf8.decoder)) {
       contents.write(data);
     }
 */
-    return contents.toString();
+    //return contents.toString();
   }
   /// Given a query and a set of documents or labels, the model ranks each
   /// document based on its semantic similarity to the provided [query].
