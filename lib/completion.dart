@@ -17,7 +17,7 @@ class CompletionApiParameters {
       this.frequencyPenalty = 0,
       this.bestOf = 1,
         this.model ='text-davinci-003',
-      this.logitBias});
+      this.logitBias, this.onRx});
 
   final String prompt;
   final int maxTokens;
@@ -33,6 +33,9 @@ class CompletionApiParameters {
   final int bestOf;
   final Map<String, num>? logitBias;
   final String model;
+
+  @JsonKey(ignore: true)
+  final Function(String rx)? onRx;
 
   Map<String, dynamic> toJson() => _$CompletionApiParametersToJson(this);
 }

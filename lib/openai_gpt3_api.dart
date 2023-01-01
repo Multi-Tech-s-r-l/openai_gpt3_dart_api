@@ -15,13 +15,13 @@ import 'invalid_request_exception.dart';
 class GPT3 {
   String apiKey;
 
-  final Function(String rx)? onRx;
+
   /// Creates the OpenAI GPT-3 helper object.
   ///
   /// You should inject your personal API-key to the program by adding
   /// --dart-define=OPENAI_API_KEY=${OPENAI_API_KEY}
   /// to your flutter arguments.
-  GPT3(String apiKey, this.onRx) : apiKey = apiKey;
+  GPT3(String apiKey) : apiKey = apiKey;
 
   Uri _getUri(String apiEndpoint, [Engine engine = Engine.davinci]) {
     if (apiEndpoint == 'classifications' ||
@@ -110,7 +110,8 @@ class GPT3 {
       num presencePenalty = 0,
       num frequencyPenalty = 0,
       int bestOf = 1,
-      Map<String, num>? logitBias}) async {
+      Map<String, num>? logitBias,
+        Function(String rx)? onRx}) async {
     var data = CompletionApiParameters(prompt,
         maxTokens: maxTokens,
         temperature: temperature,
@@ -124,21 +125,22 @@ class GPT3 {
         presencePenalty: presencePenalty,
         stop: stop,
         stream: stream,
-        topP: topP);
+        topP: topP, onRx: onRx);
 
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('completions', engine), reqData);
-    var result = await readResponse(response);
+    var result = await readResponse(response, onRx: onRx);
     Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return CompletionApiResult.fromJson(map);
   }
-  Future<String> readResponse(HttpClientResponse response) async {
+  Future<String> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
     final contents = StringBuffer();
 
 
     response.listen((value) {
       var rx = utf8.decode(value,allowMalformed: true);
+      onRx?.call(rx);
       contents.write(rx);
     }).onDone(() async {
 
