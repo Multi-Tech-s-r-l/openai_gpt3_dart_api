@@ -81,7 +81,7 @@ class Choice {
   final Logprobs? logprobs;
 
   /// The reason why the text stops, e.g. "length".
-  final String finishReason;
+  final String? finishReason;
 
   Choice(this.text, this.index, this.finishReason, {this.logprobs});
 
