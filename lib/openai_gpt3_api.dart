@@ -139,7 +139,11 @@ class GPT3 {
     final completer = Completer<String>();
     final contents = StringBuffer();
     response.transform(utf8.decoder).listen((data) {
-      contents.write(data);
+      Map<String, dynamic> map = json.decode(data);
+      _catchExceptions(map);
+      var res = CompletionApiResult.fromJson(map);
+      contents.write(res.choices.first.text);
+      onRx?.call(contents.toString());
     }, onDone: () => completer.complete(contents.toString()));
     return completer.future;
     /*response.transform(utf8.decoder).listen((data) {
