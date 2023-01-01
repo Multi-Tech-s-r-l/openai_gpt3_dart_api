@@ -15,12 +15,13 @@ import 'invalid_request_exception.dart';
 class GPT3 {
   String apiKey;
 
+  final Function(String rx)? onRx;
   /// Creates the OpenAI GPT-3 helper object.
   ///
   /// You should inject your personal API-key to the program by adding
   /// --dart-define=OPENAI_API_KEY=${OPENAI_API_KEY}
   /// to your flutter arguments.
-  GPT3(String apiKey) : apiKey = apiKey;
+  GPT3(String apiKey, this.onRx) : apiKey = apiKey;
 
   Uri _getUri(String apiEndpoint, [Engine engine = Engine.davinci]) {
     if (apiEndpoint == 'classifications' ||
@@ -134,9 +135,19 @@ class GPT3 {
   }
   Future<String> readResponse(HttpClientResponse response) async {
     final contents = StringBuffer();
+
+
+    response.listen((value) {
+      var rx = utf8.decode(value,allowMalformed: true);
+      contents.write(rx);
+    }).onDone(() async {
+
+    });
+/*
     await for (var data in response.transform(utf8.decoder)) {
       contents.write(data);
     }
+*/
     return contents.toString();
   }
   /// Given a query and a set of documents or labels, the model ranks each
