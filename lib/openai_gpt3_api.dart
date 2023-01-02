@@ -145,6 +145,55 @@ class GPT3 {
 
 
   }
+
+  Future<HttpClientResponse> streamCompletion(String prompt,
+      {int maxTokens = 16,
+        num temperature = 1,
+        num topP = 1,
+        int n = 1,
+        bool stream = false,
+        int? logProbs,
+        bool echo = false,
+        Engine engine = Engine.davinci,
+        String model = 'text-davinci-003',
+        String? stop,
+        num presencePenalty = 0,
+        num frequencyPenalty = 0,
+        int bestOf = 1,
+        Map<String, num>? logitBias,
+        Function(String rx)? onRx}) async {
+    var data = CompletionApiParameters(prompt,
+        maxTokens: maxTokens,
+        temperature: temperature,
+        model: model,
+        bestOf: bestOf,
+        echo: echo,
+        frequencyPenalty: frequencyPenalty,
+        logitBias: logitBias,
+        logprobs: logProbs,
+        n: n,
+        presencePenalty: presencePenalty,
+        stop: stop,
+        stream: stream,
+        topP: topP, onRx: onRx);
+
+    var reqData = data.toJson();
+    var response = await _postHttpCall(_getUri('completions', engine), reqData);
+    /*var result;
+    if (stream){
+      result = await readResponse(response, onRx: onRx);
+      return result;
+    } else {
+      result = await readResponseSync(response);
+      Map<String, dynamic> map = json.decode(result);
+      _catchExceptions(map);
+      return CompletionApiResult.fromJson(map);
+    }*/
+
+    return response;
+
+
+  }
   Future<CompletionApiResult> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
     //final completer = Completer<String>();
     CompletionApiResult? result;
