@@ -130,29 +130,56 @@ class GPT3 {
 
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('completions', engine), reqData);
-    var result = await readResponse(response, onRx: onRx);
-
+    var result;
+    if (stream){
+      result = await readResponse(response, onRx: onRx);
+      return result;
+    } else {
+      result = await readResponseSync(response);
       Map<String, dynamic> map = json.decode(result);
       _catchExceptions(map);
       return CompletionApiResult.fromJson(map);
+    }
+
+
+
 
   }
-  Future<String> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
-    final completer = Completer<String>();
+  Future<CompletionApiResult> readResponse(HttpClientResponse response, {Function(String rx)? onRx}) async {
+    //final completer = Completer<String>();
+    CompletionApiResult? result;
+    var n=0;
     final contents = StringBuffer();
     response.transform(utf8.decoder).listen((data) {
+
       Map<String, dynamic> map = json.decode(data.substring(5));
       _catchExceptions(map);
       var res = CompletionApiResult.fromJson(map);
+
+      result=res;
+
       contents.write(res.choices.first.text);
       onRx?.call(contents.toString());
-    }, onDone: () => completer.complete(contents.toString()));
+      n++;
+    }, onDone: () => {
+      result = CompletionApiResult(result!.id, result!.object, result!.created, result!.model, List.generate(1, (index) => Choice(contents.toString(), index, result!.choices[index].finishReason)))
+    });
     //return completer.future;
     /*response.transform(utf8.decoder).listen((data) {
       onRx?.call(data);
       contents.write(data);
     }
     );*/
+
+    /*await for (var data in response.transform(utf8.decoder)) {
+      contents.write(data);
+    }*/
+
+    return result!;
+  }
+  Future<String> readResponseSync(HttpClientResponse response) async {
+
+    final contents = StringBuffer();
 
     await for (var data in response.transform(utf8.decoder)) {
       contents.write(data);
@@ -179,7 +206,7 @@ class GPT3 {
         returnMetadata: returnMetadata);
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('search', engine), reqData);
-    var result = await readResponse(response);
+    var result = await readResponseSync(response);
     Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return SearchApiResult.fromJson(map);
@@ -226,7 +253,7 @@ class GPT3 {
         searchModel: searchModel.toString());
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('classifications'), reqData);
-    var result = await readResponse(response);
+    var result = await readResponseSync(response);
     Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return ClassificationApiResult.fromJson(map);
@@ -274,7 +301,7 @@ class GPT3 {
         expand: expand);
     var reqData = data.toJson();
     var response = await _postHttpCall(_getUri('answers'), reqData);
-    var result = await readResponse(response);
+    var result = await readResponseSync(response);
     Map<String, dynamic> map = json.decode(result);
     _catchExceptions(map);
     return AnswerApiResult.fromJson(map);
